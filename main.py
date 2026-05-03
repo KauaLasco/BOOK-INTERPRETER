@@ -25,6 +25,8 @@ def extrair_chunks(caminho_pdf, tamanho_chunk=1000, sobreposicao=200):
     
     return chunks
 
+#Converte os chunks em vetores (embedding), tornando temas/contextos semelhantes matemáticamente próximos
+#e os adiciona no banco.
 def criar_banco(chunks):
     modelo = SentenceTransformer("all-MiniLM-L6-v2") #Carrega um modelo de embedding leve e eficiente.
     client = chromadb.Client()
@@ -35,3 +37,9 @@ def criar_banco(chunks):
         colecao.add(documents=[chunk], embeddings=[embedding], ids=[str(i)]) #Insere o chunk no banco.
 
     return colecao, modelo
+
+def buscar_trechos(pergunta, colecao, modelo, n_resultados=22):
+    embedding_pergunta = modelo.encode(pergunta).tolist() #Converte a pergunta em vetor.
+    resultados = colecao.query(query_embeddings=[embedding_pergunta], n_results=n_resultados)
+
+    return "\n\n".join(resultados["documents"][0])
