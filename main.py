@@ -1,6 +1,6 @@
 import fitz #Usado para abrir e ler arquivos PDF, extraindo o texto de cada página.
 import chromadb #Banco de dados vetorial. Armazena os chunks do livro convertidos em vetores numéricos.
-import anthropic #SDK oficial da Anthropic. Comunica com a API do Claude e envia perguntas.
+from groq import Groq #SDK oficial do Groq. Comunica com a API do Groq e envia perguntas.
 from sentence_transformers import SentenceTransformer #Classe importada da biblioteca "sentence_transformers".
 #Carrega um modelo de linguagens capaz de converter textos em vetores numéricos (embeddings), representando
 #o significa semântico  de cada trecho.
@@ -45,12 +45,13 @@ def buscar_trechos(pergunta, colecao, modelo, n_resultados=22):
 
     return "\n\n".join(resultados["documents"][0])
 
+#Interpreta a pergunta do usuário e o fornece uma resposta baseado na interpretação do livro.
 def perguntar(pergunta, colecao, modelo_embedding):
     contexto = buscar_trechos(pergunta, colecao, modelo_embedding)
 
-    client = anthropic.Anthropic()
+    client = Groq(api_key="") # Insira sua API KEY do Groq.
     resposta = client.messages.create(
-        model="claude-opus-4-5", 
+        model="llama-3.3-70b-versatile", 
         max_tokens=1024, 
         messages=[{
             "role": "user", 
@@ -64,4 +65,21 @@ Pergunta: {pergunta}
 Responda com base apenas nos trechos fornecidos."""
             }])
 
-    return resposta.content[0].text
+    return resposta.choices[0].message.content
+
+#Bloco principal do código, no qual realiza a execução do mesmo.
+caminho = "livro.pdf"
+print("Extraindo texto...")
+chunks = extrair_chunks(caminho)
+
+print(f"{len(chunks)} chunks criados. Indexando vetores...")
+colecao, modelo_embedding = criar_banco(chunks)
+
+print("Pronto! Você já pode realizar as suas perguntas.\n")
+
+while True:
+    pergunta = input("Realize sua pergunta ou digite 'sair' para encerrar o programa: ")
+    if pergunta.lower() == "sair":
+        break
+    resposta = perguntar(pergunta, colecao, modelo_embedding)
+    print(f"\n {resposta}\n")
