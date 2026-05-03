@@ -50,7 +50,7 @@ def perguntar(pergunta, colecao, modelo_embedding):
     contexto = buscar_trechos(pergunta, colecao, modelo_embedding)
 
     client = Groq(api_key="") # Insira sua API KEY do Groq.
-    resposta = client.messages.create(
+    resposta = client.chat.completions.create(
         model="llama-3.3-70b-versatile", 
         max_tokens=1024, 
         messages=[{
