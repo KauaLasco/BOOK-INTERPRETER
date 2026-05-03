@@ -38,8 +38,30 @@ def criar_banco(chunks):
 
     return colecao, modelo
 
+#Recebe a pergunta do usuário e a converte em vetor para realizar a busca.
 def buscar_trechos(pergunta, colecao, modelo, n_resultados=22):
     embedding_pergunta = modelo.encode(pergunta).tolist() #Converte a pergunta em vetor.
     resultados = colecao.query(query_embeddings=[embedding_pergunta], n_results=n_resultados)
 
     return "\n\n".join(resultados["documents"][0])
+
+def perguntar(pergunta, colecao, modelo_embedding):
+    contexto = buscar_trechos(pergunta, colecao, modelo_embedding)
+
+    client = anthropic.Anthropic()
+    resposta = client.messages.create(
+        model="claude-opus-4-5", 
+        max_tokens=1024, 
+        messages=[{
+            "role": "user", 
+            "content": f"""Você é um assistente que interpreta livros.
+
+Trechos relevantes do livro:
+{contexto}
+
+Pergunta: {pergunta}
+
+Responda com base apenas nos trechos fornecidos."""
+            }])
+
+    return resposta.content[0].text
