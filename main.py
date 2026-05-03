@@ -5,6 +5,8 @@ from sentence_transformers import SentenceTransformer #Classe importada da bibli
 #Carrega um modelo de linguagens capaz de converter textos em vetores numéricos (embeddings), representando
 #o significa semântico  de cada trecho.
 
+#Extrai os caracteres do livros em chunks de 1000 caracteres. Repete 200 caracteres do chunk anterior no ínicio
+#do próximo para que uma ideia não seja cortada no meio de dois chunks.
 def extrair_chunks(caminho_pdf, tamanho_chunk=1000, sobreposicao=200):
     doc = fitz.open(caminho_pdf)
     texto_total = ""
@@ -22,3 +24,14 @@ def extrair_chunks(caminho_pdf, tamanho_chunk=1000, sobreposicao=200):
         inicio += tamanho_chunk - sobreposicao
     
     return chunks
+
+def criar_banco(chunks):
+    modelo = SentenceTransformer("all-MiniLM-L6-v2") #Carrega um modelo de embedding leve e eficiente.
+    client = chromadb.Client()
+    colecao = client.create_collection("livro")
+
+    for i, chunk in enumerate(chunks):
+        embedding = modelo.encode(chunk).tolist()
+        colecao.add(documents=[chunk], embeddings=[embedding], ids=[str(i)]) #Insere o chunk no banco.
+
+    return colecao, modelo
