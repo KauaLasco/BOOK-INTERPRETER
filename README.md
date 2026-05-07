@@ -1,6 +1,6 @@
 # Book Interpreter.
 
-> Converse com qualquer livro em PDF usando Inteligência Artificial.
+> Converse sobre qualquer livro em PDF usando Inteligência Artificial.
 
 Book Interpreter é um assistente de leitura inteligente desenvolvido em Python. Ele permite que você faça perguntas sobre qualquer livro em formato PDF e receba respostas precisas baseadas **exclusivamente no conteúdo da obra** — sem invenções, sem achismos.
 
